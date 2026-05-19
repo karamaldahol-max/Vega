@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VEGA Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8001c;--red-glow:rgba(232,0,28,.35);
+  --gold:#c9a84c;--gold-glow:rgba(201,168,76,.3);
+  --green:#00e676;--green-glow:rgba(0,230,118,.3);
+  --blue:#4fc3f7;--blue-glow:rgba(79,195,247,.3);
+  --purple:#ce93d8;
+  --bg:#080808;--surface:#111;--surface2:#181818;--border:#252525;
+  --text:#f0f0f0;--dim:#666;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(232,0,28,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(232,0,28,.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(8,8,8,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:11px 15px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--red);letter-spacing:4px;text-shadow:0 0 18px var(--red-glow)}
+.hdr-sub{font-size:9px;color:var(--dim);letter-spacing:2px;margin-top:1px}
+.act-badge{background:var(--red);color:#fff;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+
+/* ── TABS ── */
+.tabs{display:flex;padding:11px 11px 0;gap:5px;position:relative;z-index:1}
+.tab{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:9px 9px 0 0;border-bottom:none;color:var(--dim);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;padding:8px 2px;cursor:pointer;text-align:center;transition:all .2s}
+.tab.active{background:var(--surface2);border-bottom:2px solid var(--red);color:var(--red)}
+
+/* ── MAIN ── */
+.main{position:relative;z-index:1;padding:0 10px 90px}
+.sec-lbl{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--dim);text-transform:uppercase;padding:15px 4px 7px;display:flex;align-items:center;gap:6px}
+.sec-lbl span{flex:1;height:1px;background:var(--border)}
+
+/* ── DEVICE GRID ── */
+.dgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+
+/* ── DEVICE CARD ── */
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;user-select:none}
+.dc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border);transition:background .3s}
+/* PS states */
+.dc.ps-on::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.dc.ps-on{border-color:rgba(0,230,118,.2);background:#0b1a0e}
+/* Billiard time */
+.dc.bl-time::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.dc.bl-time{border-color:rgba(79,195,247,.2);background:#090e14}
+/* Billiard round */
+.dc.bl-rnd::after{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+.dc.bl-rnd{border-color:rgba(206,147,216,.2);background:#100b14}
+/* Table */
+.dc.tbl-on::after{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.dc.tbl-on{border-color:rgba(201,168,76,.2);background:#171200}
+
+.dc-icon{font-size:20px;margin-bottom:5px}
+.dc-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.dc-status{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+.dc.ps-on   .dc-status{color:var(--green)}
+.dc.bl-time .dc-status{color:var(--blue)}
+.dc.bl-rnd  .dc-status{color:var(--purple)}
+.dc.tbl-on  .dc-status{color:var(--gold)}
+
+.dc-sub{font-size:11px;font-weight:700;margin-top:5px;display:none}
+.dc.ps-on   .dc-sub{display:block;color:var(--green);font-family:'Orbitron',sans-serif}
+.dc.bl-time .dc-sub{display:block;color:var(--blue);font-family:'Orbitron',sans-serif}
+.dc.bl-rnd  .dc-sub{display:block;color:var(--purple)}
+.dc.tbl-on  .dc-sub{display:block;color:var(--gold);font-family:'Orbitron',sans-serif}
+.dc-subsub{font-size:9px;color:var(--dim);margin-top:1px;display:none}
+.dc.tbl-on .dc-subsub{display:block}
+.dc.bl-rnd .dc-subsub{display:block;color:var(--purple)}
+
+/* ── OVERLAY + SHEET ── */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:200;display:none;backdrop-filter:blur(4px)}
+.ovl.show{display:block}
+.sht{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);z-index:201;padding:18px 16px 34px;transform:translateY(100%);transition:transform .34s cubic-bezier(.16,1,.3,1);max-height:93vh;overflow-y:auto}
+.sht.show{transform:translateY(0)}
+.sht-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.sht-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:20px;margin-bottom:6px;text-transform:uppercase}
+.sht-badge.ps  {background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.sht-badge.bl  {background:rgba(79,195,247,.12);color:var(--blue);border:1px solid rgba(79,195,247,.3)}
+.sht-badge.tbl {background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.sht-name{font-size:16px;font-weight:700;margin-bottom:14px}
+
+.stb{display:none}
+.stb.show{display:block}
+
+/* ── FORM ── */
+.fld{margin-bottom:11px}
+.fld label{font-size:10px;color:var(--dim);font-weight:600;letter-spacing:1px;display:block;margin-bottom:4px}
+.fld input,.fld select{background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;padding:11px 12px;width:100%;outline:none;-webkit-appearance:none;transition:border-color .2s,box-shadow .2s}
+.fld input:focus,.fld select:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-glow)}
+.fld input[type=time]{font-family:'Orbitron',sans-serif;font-size:20px;text-align:center}
+.fld input[type=number]{direction:ltr}
+.pw{position:relative}
+.pw input{padding-right:44px}
+.ctag{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--gold);font-weight:700;pointer-events:none}
+.qps{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.qp{background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--dim);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;padding:5px 9px;cursor:pointer;transition:all .2s}
+.qp:hover,.qp.on{border-color:var(--red);color:var(--red);background:rgba(232,0,28,.08)}
+
+/* ── BUTTONS ── */
+.btn{width:100%;border:none;border-radius:11px;font-weight:700;padding:14px;cursor:pointer;transition:all .2s;margin-top:7px;font-family:'Cairo',sans-serif;font-size:13px}
+.btn-red{background:var(--red);color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px}
+.btn-red:hover{box-shadow:0 6px 22px var(--red-glow)}
+.btn-out-red{background:transparent;border:1px solid var(--red)!important;color:var(--red)}
+.btn-out-red:hover{background:rgba(232,0,28,.08)}
+.btn-ghost{background:transparent;border:1px solid var(--border)!important;color:var(--dim)}
+/* override */
+.btn{border:none}
+
+/* ── PS LIVE ── */
+.timer-big{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--green);text-shadow:0 0 28px var(--green-glow);text-align:center;margin:6px 0;letter-spacing:2px}
+.live-row{display:flex;justify-content:space-between;background:var(--surface2);border-radius:9px;padding:9px 13px;margin:10px 0}
+.lr-it{text-align:center}
+.lr-l{font-size:9px;color:var(--dim);margin-bottom:2px}
+.lr-v{font-size:12px;font-weight:700}
+.est{background:rgba(232,0,28,.07);border:1px solid rgba(232,0,28,.18);border-radius:11px;padding:12px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}
+.est-lbl{font-size:11px;color:var(--dim)}
+.est-amt{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--red);font-weight:900}
+.est-cur{font-size:10px;color:var(--gold);margin-left:3px}
+
+/* ── BILLIARD ── */
+.bl-mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.bl-mode-btn{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--dim);font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;padding:12px;cursor:pointer;transition:all .2s;text-align:center}
+.bl-mode-btn.sel-time{border-color:var(--blue);color:var(--blue);background:rgba(79,195,247,.08)}
+.bl-mode-btn.sel-rnd {border-color:var(--purple);color:var(--purple);background:rgba(206,147,216,.08)}
+
+.rnd-counter{text-align:center;margin:10px 0}
+.rnd-num{font-family:'Orbitron',sans-serif;font-size:56px;font-weight:900;color:var(--purple);text-shadow:0 0 24px rgba(206,147,216,.4)}
+.rnd-lbl{font-size:11px;color:var(--dim);margin-top:-4px}
+.rnd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.rnd-btn{border:none;border-radius:11px;font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;padding:16px;cursor:pointer;transition:all .15s}
+.rnd-btn-add{background:rgba(206,147,216,.15);color:var(--purple);border:1px solid rgba(206,147,216,.3)}
+.rnd-btn-add:active{transform:scale(.95);background:rgba(206,147,216,.25)}
+.rnd-btn-sub{background:var(--surface2);color:var(--dim);border:1px solid var(--border)}
+.rnd-btn-sub:active{transform:scale(.95)}
+.rnd-price-row{background:rgba(206,147,216,.06);border:1px solid rgba(206,147,216,.2);border-radius:11px;padding:12px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}
+.rnd-total-lbl{font-size:11px;color:var(--dim)}
+.rnd-total-amt{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--purple);font-weight:900}
+
+.bl-time-big{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--blue);text-shadow:0 0 28px var(--blue-glow);text-align:center;margin:6px 0;letter-spacing:2px}
+.bl-est{background:rgba(79,195,247,.07);border:1px solid rgba(79,195,247,.18);border-radius:11px;padding:12px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center}
+.bl-est-amt{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--blue);font-weight:900}
+
+/* ── ORDER SYSTEM ── */
+.order-bar{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.22);border-radius:11px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.ob-lbl{font-size:11px;font-weight:700}
+.ob-amt{font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold);font-weight:900}
+.ob-cur{font-size:9px;color:var(--dim);margin-left:3px}
+.ord-lbl{font-size:9px;letter-spacing:2px;color:var(--dim);font-weight:700;text-transform:uppercase;margin-bottom:7px}
+.ord-list{margin-bottom:10px}
+.ord-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.ord-item:last-child{border-bottom:none}
+.oi-nm{font-size:12px;font-weight:600}
+.oi-qr{display:flex;align-items:center;gap:7px}
+.qb{width:25px;height:25px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1;font-family:'Cairo',sans-serif}
+.qb:hover{border-color:var(--red);color:var(--red)}
+.qn{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;min-width:16px;text-align:center}
+.oi-sub{font-size:11px;color:var(--gold);font-weight:700;min-width:72px;text-align:left}
+.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px}
+.mi{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all .2s;user-select:none}
+.mi:active{transform:scale(.96)}
+.mi:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.mi-nm{font-size:12px;font-weight:600;margin-bottom:1px}
+.mi-pr{font-size:10px;color:var(--gold);font-weight:700}
+.mi-add{width:24px;height:24px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#000;font-weight:900;flex-shrink:0}
+.emp{text-align:center;padding:14px;color:var(--dim);font-size:11px}
+
+/* ── RECEIPT ── */
+.rcv-ovl{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+.rcv-ovl.show{display:flex}
+.rcv{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 18px;width:100%;max-width:370px;animation:pop .3s cubic-bezier(.16,1,.3,1)}
+@keyframes pop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.rcv-logo{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;color:var(--red);letter-spacing:4px;text-align:center}
+.rcv-sub{text-align:center;font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:14px;margin-top:2px}
+.rdash{border:none;border-top:1px dashed var(--border);margin:10px 0}
+.rr{display:flex;justify-content:space-between;margin-bottom:7px}
+.rl{font-size:10px;color:var(--dim)}
+.rv{font-size:11px;font-weight:700}
+.roi{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px}
+.rol{color:var(--dim)}
+.rov{color:var(--gold);font-weight:700}
+.rtb{background:rgba(232,0,28,.07);border:1px solid rgba(232,0,28,.22);border-radius:11px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.rt-lbl{font-size:12px;font-weight:700}
+.rt-amt{font-family:'Orbitron',sans-serif;font-size:26px;color:var(--red);font-weight:900}
+.btn-rcv-close{width:100%;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--dim);font-family:'Cairo',sans-serif;font-size:12px;padding:10px;cursor:pointer}
+
+/* ── HISTORY ── */
+.hi{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+.hi-dev{font-size:12px;font-weight:700}
+.hi-info{font-size:10px;color:var(--dim);margin-top:1px}
+.hi-amt{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--red);font-weight:700;text-align:left}
+.hi-type{font-size:9px;color:var(--dim);text-align:left;margin-top:1px}
+.emp-st{text-align:center;padding:46px 16px;color:var(--dim);font-size:12px}
+.emp-ic{font-size:34px;margin-bottom:9px}
+.clr-btn{width:100%;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--dim);font-family:'Cairo',sans-serif;font-size:11px;padding:8px;cursor:pointer;margin-top:9px}
+
+/* ── MANUAL ── */
+.man-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:4px;position:relative;overflow:hidden}
+.man-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.res-box{background:rgba(232,0,28,.06);border:1px solid rgba(232,0,28,.18);border-radius:11px;padding:12px;margin-top:12px;display:none}
+.res-box.show{display:block}
+.rb-r{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
+.rb-l{color:var(--dim)}
+.res-tot{font-family:'Orbitron',sans-serif;font-size:24px;color:var(--red);font-weight:900;text-align:center;margin-top:9px}
+.res-tot-lbl{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}
+</style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
+
+</head>
+<body>
+
+<div class="hdr">
+  <div><div class="logo">VEGA</div><div class="hdr-sub">GAMING CLUB</div></div>
+  <div class="act-badge" id="actCount">0 نشط</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('devices')">🎮 الأجهزة</div>
+  <div class="tab" onclick="sw('billiard')">🎱 بلياردو</div>
+  <div class="tab" onclick="sw('tables')">🛎️ طاولات</div>
+  <div class="tab" onclick="sw('history')">📋 السجل</div>
+</div>
+
+<div class="main">
+
+<!-- ═══ PS ═══ -->
+<div id="tab-devices">
+  <div class="sec-lbl">بلايستيشن<span></span></div>
+  <div class="dgrid" id="psGrid"></div>
+  <div class="sec-lbl" style="margin-top:6px">حساب يدوي<span></span></div>
+  <div class="man-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+      <div class="fld"><label>البداية</label><input type="time" id="m-start"></div>
+      <div class="fld"><label>النهاية</label><input type="time" id="m-end"></div>
+    </div>
+    <div class="fld">
+      <label>سعر الساعة (ل.س)</label>
+      <div class="pw"><input type="number" id="m-price" placeholder="0" min="0"><span class="ctag">ل.س</span></div>
+      <div class="qps">
+        <button class="qp" onclick="msp(5000)">5,000</button>
+        <button class="qp" onclick="msp(10000)">10,000</button>
+        <button class="qp" onclick="msp(15000)">15,000</button>
+        <button class="qp" onclick="msp(20000)">20,000</button>
+      </div>
+    </div>
+    <button class="btn btn-red" onclick="manCalc()" style="margin-top:8px">CALCULATE</button>
+    <div class="res-box" id="m-res">
+      <div class="rb-r"><span class="rb-l">المدة</span><span id="m-r-dur" style="font-weight:700">—</span></div>
+      <div class="rb-r"><span class="rb-l">سعر الساعة</span><span id="m-r-rate" style="font-weight:700">—</span></div>
+      <div class="res-tot" id="m-r-tot">—</div>
+      <div class="res-tot-lbl">ليرة سورية</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BILLIARD ═══ -->
+<div id="tab-billiard" style="display:none">
+  <div class="sec-lbl">طاولة البلياردو<span></span></div>
+  <div class="dgrid" id="blGrid"></div>
+</div>
+
+<!-- ═══ TABLES ═══ -->
+<div id="tab-tables" style="display:none">
+  <div class="sec-lbl">طاولات الطلبات<span></span></div>
+  <div class="dgrid" id="tblGrid"></div>
+</div>
+
+<!-- ═══ HISTORY ═══ -->
+<div id="tab-history" style="display:none">
+  <div class="sec-lbl">سجل الجلسات<span></span></div>
+  <div id="histList"></div>
+</div>
+
+</div>
+
+<!-- ═══ OVERLAY + SHEET ═══ -->
+<div class="ovl" id="ovl" onclick="closeSheet()"></div>
+<div class="sht" id="sht">
+  <div class="sht-handle"></div>
+  <div class="sht-badge" id="shtBadge"></div>
+  <div class="sht-name" id="shtName"></div>
+
+  <!-- PS IDLE -->
+  <div class="stb" id="st-ps-idle">
+    <div class="fld"><label>وقت البداية</label><input type="time" id="s-start"></div>
+    <div class="fld">
+      <label>سعر الساعة (ل.س)</label>
+      <div class="pw"><input type="number" id="s-price" placeholder="0" min="0"><span class="ctag">ل.س</span></div>
+      <div class="qps" id="ps-qps">
+        <button class="qp" onclick="ssp(5000)">5,000</button>
+        <button class="qp" onclick="ssp(10000)">10,000</button>
+        <button class="qp" onclick="ssp(15000)">15,000</button>
+        <button class="qp" onclick="ssp(20000)">20,000</button>
+      </div>
+    </div>
+    <button class="btn btn-red" onclick="startPS()">▶ بدء الجلسة</button>
+  </div>
+
+  <!-- PS ACTIVE -->
+  <div class="stb" id="st-ps-on">
+    <div class="timer-big" id="ps-timer-big">00:00:00</div>
+    <div class="live-row">
+      <div class="lr-it"><div class="lr-l">البداية</div><div class="lr-v" id="ps-start-disp">—</div></div>
+      <div class="lr-it"><div class="lr-l">سعر/ساعة</div><div class="lr-v" id="ps-rate-disp">—</div></div>
+      <div class="lr-it"><div class="lr-l">الآن</div><div class="lr-v" id="ps-now-disp">—</div></div>
+    </div>
+    <div class="est">
+      <span class="est-lbl">المبلغ الحالي</span>
+      <div><span class="est-cur">ل.س</span><span class="est-amt" id="ps-est">0</span></div>
+    </div>
+    <button class="btn btn-out-red" onclick="endPS()" style="border:1px solid var(--red)">⏹ إنهاء وإصدار الفاتورة</button>
+  </div>
+
+  <!-- BL IDLE — choose mode -->
+  <div class="stb" id="st-bl-idle">
+    <p style="font-size:12px;color:var(--dim);margin-bottom:12px">اختر طريقة الحساب:</p>
+    <div class="bl-mode-row">
+      <div class="bl-mode-btn" id="mode-time-btn" onclick="selectBLMode('time')">⏱ بالوقت</div>
+      <div class="bl-mode-btn" id="mode-rnd-btn"  onclick="selectBLMode('round')">🎱 بالجولة (دق)</div>
+    </div>
+    <!-- time fields -->
+    <div id="bl-time-fields" style="display:none">
+      <div class="fld"><label>وقت البداية</label><input type="time" id="bl-start"></div>
+      <div class="fld">
+        <label>سعر الساعة (ل.س)</label>
+        <div class="pw"><input type="number" id="bl-price" placeholder="0" min="0"><span class="ctag">ل.س</span></div>
+        <div class="qps" id="bl-qps">
+          <button class="qp" onclick="blsp(5000)">5,000</button>
+          <button class="qp" onclick="blsp(10000)">10,000</button>
+          <button class="qp" onclick="blsp(15000)">15,000</button>
+          <button class="qp" onclick="blsp(20000)">20,000</button>
+        </div>
+      </div>
+    </div>
+    <!-- round fields -->
+    <div id="bl-rnd-fields" style="display:none">
+      <div class="fld">
+        <label>سعر الجولة الواحدة (ل.س)</label>
+        <div class="pw"><input type="number" id="bl-rnd-price" placeholder="0" min="0"><span class="ctag">ل.س</span></div>
+        <div class="qps">
+          <button class="qp" onclick="blrsp(3000)">3,000</button>
+          <button class="qp" onclick="blrsp(5000)">5,000</button>
+          <button class="qp" onclick="blrsp(7000)">7,000</button>
+          <button class="qp" onclick="blrsp(10000)">10,000</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-red" onclick="startBL()" style="margin-top:8px">▶ بدء الجلسة</button>
+  </div>
+
+  <!-- BL ACTIVE TIME -->
+  <div class="stb" id="st-bl-time">
+    <div class="bl-time-big" id="bl-timer-big">00:00:00</div>
+    <div class="live-row" style="background:var(--surface2)">
+      <div class="lr-it"><div class="lr-l">البداية</div><div class="lr-v" id="bl-start-disp" style="color:var(--blue)">—</div></div>
+      <div class="lr-it"><div class="lr-l">سعر/ساعة</div><div class="lr-v" id="bl-rate-disp" style="color:var(--blue)">—</div></div>
+      <div class="lr-it"><div class="lr-l">الآن</div><div class="lr-v" id="bl-now-disp" style="color:var(--blue)">—</div></div>
+    </div>
+    <div class="bl-est">
+      <span class="est-lbl">المبلغ الحالي</span>
+      <div><span class="est-cur">ل.س</span><span class="bl-est-amt" id="bl-est">0</span></div>
+    </div>
+    <button class="btn btn-out-red" onclick="endBL()" style="border:1px solid var(--red)">⏹ إنهاء وإصدار الفاتورة</button>
+  </div>
+
+  <!-- BL ACTIVE ROUND -->
+  <div class="stb" id="st-bl-rnd">
+    <div class="rnd-counter">
+      <div class="rnd-num" id="rnd-count">0</div>
+      <div class="rnd-lbl">جولة</div>
+    </div>
+    <div class="rnd-btns">
+      <button class="rnd-btn rnd-btn-add" onclick="addRound()">＋</button>
+      <button class="rnd-btn rnd-btn-sub" onclick="subRound()">－</button>
+    </div>
+    <div class="rnd-price-row">
+      <span class="rnd-total-lbl">الإجمالي</span>
+      <div><span style="font-size:10px;color:var(--dim);margin-left:3px">ل.س</span><span class="rnd-total-amt" id="rnd-total">0</span></div>
+    </div>
+    <button class="btn btn-out-red" onclick="endBL()" style="border:1px solid var(--purple);color:var(--purple)">⏹ إنهاء وإصدار الفاتورة</button>
+  </div>
+
+  <!-- TBL IDLE -->
+  <div class="stb" id="st-tbl-idle">
+    <p style="font-size:12px;color:var(--dim);margin-bottom:12px">الطاولة فارغة — افتح جلسة لبدء تسجيل الطلبات</p>
+    <button class="btn btn-red" onclick="openTBL()">▶ فتح الطاولة</button>
+  </div>
+
+  <!-- TBL ACTIVE -->
+  <div class="stb" id="st-tbl-on">
+    <div class="order-bar">
+      <div class="ob-lbl">إجمالي الطلبات</div>
+      <div><span class="ob-cur">ل.س</span><span class="ob-amt" id="tbl-total-disp">0</span></div>
+    </div>
+    <div class="ord-lbl">الطلبات الحالية</div>
+    <div class="ord-list" id="ordList"></div>
+    <div class="ord-lbl" style="margin-top:9px">القائمة — اضغط للإضافة</div>
+    <div class="menu-grid" id="menuGrid"></div>
+    <button class="btn btn-out-red" onclick="endTBL()" style="border:1px solid var(--red)">⏹ إغلاق الطاولة والفاتورة</button>
+    <button class="btn btn-ghost" onclick="closeSheet()" style="border:1px solid var(--border);margin-top:6px">— تصغير</button>
+  </div>
+
+</div>
+
+<!-- ═══ RECEIPT ═══ -->
+<div class="rcv-ovl" id="rcvOvl">
+  <div class="rcv">
+    <div class="rcv-logo">VEGA</div>
+    <div class="rcv-sub">GAMING CLUB · RECEIPT</div>
+    <hr class="rdash">
+    <div class="rr"><span class="rl">الجهاز / الطاولة</span><span class="rv" id="r-dev">—</span></div>
+    <div id="r-ps-sec">
+      <div class="rr"><span class="rl">البداية</span><span class="rv" id="r-st">—</span></div>
+      <div class="rr"><span class="rl">النهاية</span><span class="rv" id="r-en">—</span></div>
+      <div class="rr"><span class="rl">المدة</span><span class="rv" id="r-du">—</span></div>
+      <div class="rr"><span class="rl">سعر الساعة</span><span class="rv" id="r-ra">—</span></div>
+    </div>
+    <div id="r-bl-rnd-sec" style="display:none">
+      <div class="rr"><span class="rl">عدد الجولات</span><span class="rv" id="r-rnds">—</span></div>
+      <div class="rr"><span class="rl">سعر الجولة</span><span class="rv" id="r-rnd-pr">—</span></div>
+    </div>
+    <div id="r-tbl-sec" style="display:none">
+      <div class="ord-lbl" style="margin:7px 0 5px">تفصيل الطلبات</div>
+      <div id="r-ord-items"></div>
+    </div>
+    <hr class="rdash">
+    <div class="rtb">
+      <span class="rt-lbl">الإجمالي</span>
+      <div><span style="font-size:10px;color:var(--gold)">ل.س </span><span class="rt-amt" id="r-tot">—</span></div>
+    </div>
+    <button class="btn-rcv-close" onclick="closeRcv()">✓ تم — إغلاق</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════
+const MENU=[
+  {id:'mate',    name:'متة',           price:5000},
+  {id:'tea',     name:'شاي',           price:5000},
+  {id:'milo',    name:'ميلو',          price:5000},
+  {id:'cap',     name:'كابتشينو',      price:5000},
+  {id:'nes',     name:'نسكافيه',       price:3000},
+  {id:'indo',    name:'اندومي',        price:7000},
+  {id:'ark_m',   name:'أركيلة مزايا', price:12000},
+  {id:'ark_n',   name:'أركيلة نخلة',  price:15000},
+  {id:'chips_d', name:'شيبس دارنيتو', price:6000},
+  {id:'chips_s', name:'شيبس شير إت',  price:4000},
+  {id:'poch',    name:'بوشار',         price:3000},
+];
+
+const PS_DEVICES=[
+  {id:'ps1',name:'الجهاز 1'},
+  {id:'ps2',name:'الجهاز 2'},
+  {id:'ps3',name:'الجهاز 3'},
+  {id:'ps4',name:'الجهاز 4'},
+  {id:'ps5',name:'الجهاز 5'},
+];
+const BL_DEVICES=[
+  {id:'bl1',name:'طاولة البلياردو 1'},
+  {id:'bl2',name:'طاولة البلياردو 2'},
+];
+const TBL_DEVICES=[
+  {id:'t1',name:'طاولة 1'},
+  {id:'t2',name:'طاولة 2'},
+];
+
+// State stores — fully ISOLATED per device
+let psSessions  = {}; // {id:{startTime,pricePerHour,startTs}}
+let blSessions  = {}; // {id:{mode:'time'|'round', startTime?,pricePerHour?,startTs?, rounds?,roundPrice?}}
+let tblOrders   = {}; // {id:{open,items:{menuId:qty}}}
+let history     = JSON.parse(localStorage.getItem('vegaH')||'[]');
+let curDev = null; // {id,section}
+let blMode = null; // chosen mode in sheet
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+function init(){
+  buildMenu();
+  renderPS(); renderBL(); renderTBL(); renderHistory();
+  updateBadge();
+  setInterval(tick,1000);
+}
+
+function buildMenu(){
+  document.getElementById('menuGrid').innerHTML=MENU.map(m=>
+    `<div class="mi" onclick="addItem('${m.id}')">
+      <div><div class="mi-nm">${m.name}</div><div class="mi-pr">${m.price.toLocaleString()} ل.س</div></div>
+      <div class="mi-add">+</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// RENDER GRIDS
+// ══════════════════════════════════════════════════
+function renderPS(){
+  document.getElementById('psGrid').innerHTML=PS_DEVICES.map(d=>{
+    const s=psSessions[d.id];
+    const on=!!s;
+    return`<div class="dc${on?' ps-on':''}" id="dc-${d.id}" onclick="openSheet('${d.id}','ps')">
+      <div class="dc-icon">🎮</div>
+      <div class="dc-name">${d.name}</div>
+      <div class="dc-status">${on?'نشط ●':'متاح'}</div>
+      <div class="dc-sub" id="sub-${d.id}">${on?'00:00':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderBL(){
+  document.getElementById('blGrid').innerHTML=BL_DEVICES.map(d=>{
+    const s=blSessions[d.id];
+    const isTime=s&&s.mode==='time';
+    const isRnd=s&&s.mode==='round';
+    let cls='', subTxt='', subSub='';
+    if(isTime){cls=' bl-time';subTxt='00:00';subSub='بالوقت';}
+    else if(isRnd){cls=' bl-rnd';subTxt=`${s.rounds} جولة`;subSub=`${(s.rounds*s.roundPrice).toLocaleString()} ل.س`;}
+    return`<div class="dc${cls}" id="dc-${d.id}" onclick="openSheet('${d.id}','bl')">
+      <div class="dc-icon">🎱</div>
+      <div class="dc-name">${d.name}</div>
+      <div class="dc-status">${s?(isTime?'وقت ●':'جولات ●'):'متاح'}</div>
+      <div class="dc-sub" id="sub-${d.id}">${subTxt}</div>
+      <div class="dc-subsub" id="subsub-${d.id}">${subSub}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTBL(){
+  document.getElementById('tblGrid').innerHTML=TBL_DEVICES.map(d=>{
+    const to=tblOrders[d.id];
+    const on=to&&to.open;
+    const tot=on?calcTblTot(d.id):0;
+    const cnt=on?Object.values(to.items).reduce((a,b)=>a+b,0):0;
+    return`<div class="dc${on?' tbl-on':''}" id="dc-${d.id}" onclick="openSheet('${d.id}','tbl')">
+      <div class="dc-icon">🛎️</div>
+      <div class="dc-name">${d.name}</div>
+      <div class="dc-status">${on?'مفتوحة ●':'متاحة'}</div>
+      <div class="dc-sub" id="sub-${d.id}">${on?tot.toLocaleString()+' ل.س':''}</div>
+      <div class="dc-subsub" id="subsub-${d.id}">${on?cnt+' طلب':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// TICK — each device independently
+// ══════════════════════════════════════════════════
+function tick(){
+  // PS: update card timers + sheet if open
+  Object.entries(psSessions).forEach(([id,s])=>{
+    const el=document.getElementById('sub-'+id);
+    if(el) el.textContent=msHHMM(Date.now()-s.startTs);
+  });
+  // BL time: update card timers
+  Object.entries(blSessions).forEach(([id,s])=>{
+    if(s.mode!=='time') return;
+    const el=document.getElementById('sub-'+id);
+    if(el) el.textContent=msHHMM(Date.now()-s.startTs);
+  });
+  // Update open sheet
+  if(curDev){
+    if(curDev.sec==='ps' && psSessions[curDev.id]) updatePSSheet();
+    if(curDev.sec==='bl'){
+      const s=blSessions[curDev.id];
+      if(s&&s.mode==='time') updateBLTimeSheet();
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// SHEET OPEN
+// ══════════════════════════════════════════════════
+function openSheet(id,sec){
+  curDev={id,sec};
+  // hide all states
+  document.querySelectorAll('.stb').forEach(x=>x.classList.remove('show'));
+
+  const badge=document.getElementById('shtBadge');
+  const name=document.getElementById('shtName');
+
+  if(sec==='ps'){
+    const d=PS_DEVICES.find(x=>x.id===id);
+    badge.className='sht-badge ps'; badge.textContent='PlayStation';
+    name.textContent='🎮  '+d.name;
+    const s=psSessions[id];
+    if(s){
+      document.getElementById('st-ps-on').classList.add('show');
+      document.getElementById('ps-start-disp').textContent=fmt12(s.startTime);
+      document.getElementById('ps-rate-disp').textContent=s.pricePerHour.toLocaleString();
+      updatePSSheet();
+    } else {
+      document.getElementById('st-ps-idle').classList.add('show');
+      const now=new Date();
+      document.getElementById('s-start').value=nowStr();
+      document.querySelectorAll('#ps-qps .qp').forEach(b=>b.classList.remove('on'));
+    }
+  }
+  else if(sec==='bl'){
+    const d=BL_DEVICES.find(x=>x.id===id);
+    badge.className='sht-badge bl'; badge.textContent='بلياردو';
+    name.textContent='🎱  '+d.name;
+    const s=blSessions[id];
+    if(!s){
+      blMode=null;
+      document.getElementById('st-bl-idle').classList.add('show');
+      resetBLModeUI();
+    } else if(s.mode==='time'){
+      document.getElementById('st-bl-time').classList.add('show');
+      document.getElementById('bl-start-disp').textContent=fmt12(s.startTime);
+      document.getElementById('bl-rate-disp').textContent=s.pricePerHour.toLocaleString();
+      updateBLTimeSheet();
+    } else {
+      document.getElementById('st-bl-rnd').classList.add('show');
+      updateRndSheet();
+    }
+  }
+  else if(sec==='tbl'){
+    const d=TBL_DEVICES.find(x=>x.id===id);
+    badge.className='sht-badge tbl'; badge.textContent='طاولة';
+    name.textContent='🛎️  '+d.name;
+    const to=tblOrders[id];
+    if(to&&to.open){
+      document.getElementById('st-tbl-on').classList.add('show');
+      renderOrdList();
+    } else {
+      document.getElementById('st-tbl-idle').classList.add('show');
+    }
+  }
+
+  document.getElementById('ovl').classList.add('show');
+  document.getElementById('sht').classList.add('show');
+}
+
+function closeSheet(){
+  document.getElementById('ovl').classList.remove('show');
+  document.getElementById('sht').classList.remove('show');
+  curDev=null;
+}
+
+// ══════════════════════════════════════════════════
+// PS SESSION
+// ══════════════════════════════════════════════════
+function startPS(){
+  const sv=document.getElementById('s-start').value;
+  const pr=parseFloat(document.getElementById('s-price').value);
+
+  if(!sv){alert('أدخل وقت البداية');return}
+  if(!pr||pr<=0){alert('أدخل سعر الساعة');return}
+
+  // مؤقت مستقل يبدأ من الصفر لكل جهاز
+  const startTs = Date.now();
+
+  psSessions[curDev.id]={
+    startTime:sv,
+    pricePerHour:pr,
+    startTs:startTs,
+    createdAt:startTs
+  };
+
+  closeSheet();
+  renderPS();
+  updateBadge();
+}
+
+function updatePSSheet(){
+  const s=psSessions[curDev.id];
+  if(!s) return;
+
+  // كل جهاز يعتمد على توقيته الخاص فقط
+  const elapsed = Date.now() - s.startTs;
+
+  document.getElementById('ps-timer-big').textContent = msFull(elapsed);
+
+  const total = Math.ceil((elapsed/3600000)*s.pricePerHour);
+
+  document.getElementById('ps-est').textContent = total.toLocaleString('ar-SY');
+
+  document.getElementById('ps-now-disp').textContent = fmt12(nowStr());
+}
+
+function endPS(){
+  const s=psSessions[curDev.id]; if(!s) return;
+  const d=PS_DEVICES.find(x=>x.id===curDev.id);
+  const endTs=Date.now(), el=endTs-s.startTs;
+  const total=Math.ceil((el/3600000)*s.pricePerHour);
+  const endStr=tsToStr(endTs);
+  const rec={dev:d.name,type:'ps',start:s.startTime,end:endStr,dur:msHHMM(el),rate:s.pricePerHour,total,ts:endTs};
+  history.unshift(rec); save();
+  showRcv_ps(rec);
+  delete psSessions[curDev.id];
+  closeSheet(); renderPS(); updateBadge(); renderHistory();
+}
+
+// ══════════════════════════════════════════════════
+// BILLIARD
+// ══════════════════════════════════════════════════
+function resetBLModeUI(){
+  document.getElementById('mode-time-btn').className='bl-mode-btn';
+  document.getElementById('mode-rnd-btn').className='bl-mode-btn';
+  document.getElementById('bl-time-fields').style.display='none';
+  document.getElementById('bl-rnd-fields').style.display='none';
+}
+
+function selectBLMode(m){
+  blMode=m;
+  resetBLModeUI();
+  if(m==='time'){
+    document.getElementById('mode-time-btn').className='bl-mode-btn sel-time';
+    document.getElementById('bl-time-fields').style.display='block';
+    document.getElementById('bl-start').value=nowStr();
+  } else {
+    document.getElementById('mode-rnd-btn').className='bl-mode-btn sel-rnd';
+    document.getElementById('bl-rnd-fields').style.display='block';
+  }
+}
+
+function startBL(){
+  if(!blMode){alert('اختر طريقة الحساب');return}
+  if(blMode==='time'){
+    const sv=document.getElementById('bl-start').value;
+    const pr=parseFloat(document.getElementById('bl-price').value);
+    if(!sv){alert('أدخل وقت البداية');return}
+    if(!pr||pr<=0){alert('أدخل سعر الساعة');return}
+    blSessions[curDev.id]={
+      mode:'time',
+      startTime:sv,
+      pricePerHour:pr,
+      startTs:Date.now(),
+      createdAt:Date.now()
+    };
+  } else {
+    const pr=parseFloat(document.getElementById('bl-rnd-price').value);
+    if(!pr||pr<=0){alert('أدخل سعر الجولة');return}
+    blSessions[curDev.id]={mode:'round',rounds:0,roundPrice:pr};
+  }
+  closeSheet(); renderBL(); updateBadge();
+}
+
+function updateBLTimeSheet(){
+  const s=blSessions[curDev.id];
+
+  if(!s || s.mode!=='time') return;
+
+  const elapsed = Date.now() - s.startTs;
+
+  document.getElementById('bl-timer-big').textContent = msFull(elapsed);
+
+  const total = Math.ceil((elapsed/3600000)*s.pricePerHour);
+
+  document.getElementById('bl-est').textContent = total.toLocaleString('ar-SY');
+
+  document.getElementById('bl-now-disp').textContent = fmt12(nowStr());
+}
+
+function addRound(){
+  const s=blSessions[curDev.id]; if(!s) return;
+  s.rounds++;
+  updateRndSheet(); updateBLCard();
+}
+function subRound(){
+  const s=blSessions[curDev.id]; if(!s||s.rounds<=0) return;
+  s.rounds--;
+  updateRndSheet(); updateBLCard();
+}
+function updateRndSheet(){
+  const s=blSessions[curDev.id]; if(!s) return;
+  document.getElementById('rnd-count').textContent=s.rounds;
+  document.getElementById('rnd-total').textContent=(s.rounds*s.roundPrice).toLocaleString('ar-SY');
+}
+function updateBLCard(){
+  const s=blSessions[curDev.id]; if(!s||s.mode!=='round') return;
+  const sub=document.getElementById('sub-'+curDev.id);
+  const ssub=document.getElementById('subsub-'+curDev.id);
+  if(sub) sub.textContent=`${s.rounds} جولة`;
+  if(ssub) ssub.textContent=`${(s.rounds*s.roundPrice).toLocaleString()} ل.س`;
+}
+
+function endBL(){
+  const s=blSessions[curDev.id]; if(!s) return;
+  const d=BL_DEVICES.find(x=>x.id===curDev.id);
+  let rec, total;
+  if(s.mode==='time'){
+    const endTs=Date.now(), el=endTs-s.startTs;
+    total=Math.ceil((el/3600000)*s.pricePerHour);
+    const endStr=tsToStr(endTs);
+    rec={dev:d.name,type:'bl-time',start:s.startTime,end:endStr,dur:msHHMM(el),rate:s.pricePerHour,total,ts:endTs};
+    showRcv_ps(rec);
+  } else {
+    total=s.rounds*s.roundPrice;
+    rec={dev:d.name,type:'bl-round',rounds:s.rounds,roundPrice:s.roundPrice,total,ts:Date.now()};
+    showRcv_blRnd(rec);
+  }
+  history.unshift(rec); save();
+  delete blSessions[curDev.id];
+  closeSheet(); renderBL(); updateBadge(); renderHistory();
+}
+
+// ══════════════════════════════════════════════════
+// TABLE ORDERS
+// ══════════════════════════════════════════════════
+function openTBL(){
+  tblOrders[curDev.id]={open:true,items:{}};
+  document.getElementById('st-tbl-idle').classList.remove('show');
+  document.getElementById('st-tbl-on').classList.add('show');
+  renderOrdList(); renderTBL(); updateBadge();
+}
+
+function addItem(mid){
+  const to=tblOrders[curDev.id]; if(!to||!to.open) return;
+  to.items[mid]=(to.items[mid]||0)+1;
+  renderOrdList(); updateTBLCard();
+}
+function chgQty(mid,d){
+  const to=tblOrders[curDev.id];
+  const nq=(to.items[mid]||0)+d;
+  if(nq<=0) delete to.items[mid]; else to.items[mid]=nq;
+  renderOrdList(); updateTBLCard();
+}
+function calcTblTot(id){
+  const to=tblOrders[id]; if(!to||!to.open) return 0;
+  return Object.entries(to.items).reduce((sum,[mid,qty])=>{
+    const m=MENU.find(x=>x.id===mid); return sum+(m?m.price*qty:0);
+  },0);
+}
+function renderOrdList(){
+  const to=tblOrders[curDev.id];
+  const el=document.getElementById('ordList');
+  const entries=Object.entries(to.items);
+  if(!entries.length){el.innerHTML='<div class="emp">لا توجد طلبات — اختر من القائمة</div>';document.getElementById('tbl-total-disp').textContent='0';return;}
+  el.innerHTML=entries.map(([mid,qty])=>{
+    const m=MENU.find(x=>x.id===mid);
+    return`<div class="ord-item">
+      <div class="oi-nm">${m.name}</div>
+      <div class="oi-qr">
+        <button class="qb" onclick="chgQty('${mid}',-1)">−</button>
+        <div class="qn">${qty}</div>
+        <button class="qb" onclick="chgQty('${mid}',1)">+</button>
+        <div class="oi-sub">${(m.price*qty).toLocaleString()} ل.س</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('tbl-total-disp').textContent=calcTblTot(curDev.id).toLocaleString('ar-SY');
+}
+function updateTBLCard(){
+  const tot=calcTblTot(curDev.id);
+  const to=tblOrders[curDev.id];
+  const cnt=Object.values(to.items).reduce((a,b)=>a+b,0);
+  const s=document.getElementById('sub-'+curDev.id);
+  const ss=document.getElementById('subsub-'+curDev.id);
+  if(s) s.textContent=tot.toLocaleString()+' ل.س';
+  if(ss) ss.textContent=cnt+' طلب';
+}
+function endTBL(){
+  const to=tblOrders[curDev.id]; if(!to||!to.open) return;
+  const d=TBL_DEVICES.find(x=>x.id===curDev.id);
+  const total=calcTblTot(curDev.id);
+  const orders=Object.entries(to.items).map(([mid,qty])=>{const m=MENU.find(x=>x.id===mid);return{name:m.name,qty,sub:m.price*qty}});
+  const rec={dev:d.name,type:'table',orders,total,ts:Date.now()};
+  history.unshift(rec); save();
+  showRcv_tbl(rec);
+  delete tblOrders[curDev.id];
+  closeSheet(); renderTBL(); updateBadge(); renderHistory();
+}
+
+// ══════════════════════════════════════════════════
+// RECEIPTS
+// ══════════════════════════════════════════════════
+function showRcv_ps(r){
+  h('r-ps-sec');h('r-bl-rnd-sec');h('r-tbl-sec');
+  document.getElementById('r-dev').textContent=r.dev;
+  document.getElementById('r-st').textContent=fmt12(r.start);
+  document.getElementById('r-en').textContent=fmt12(r.end);
+  document.getElementById('r-du').textContent=r.dur;
+  document.getElementById('r-ra').textContent=r.rate.toLocaleString()+' ل.س';
+  document.getElementById('r-tot').textContent=r.total.toLocaleString('ar-SY');
+  document.getElementById('r-ps-sec').style.display='';
+  document.getElementById('rcvOvl').classList.add('show');
+}
+function showRcv_blRnd(r){
+  h('r-ps-sec');h('r-bl-rnd-sec');h('r-tbl-sec');
+  document.getElementById('r-dev').textContent=r.dev;
+  document.getElementById('r-rnds').textContent=r.rounds+' جولة';
+  document.getElementById('r-rnd-pr').textContent=r.roundPrice.toLocaleString()+' ل.س';
+  document.getElementById('r-tot').textContent=r.total.toLocaleString('ar-SY');
+  document.getElementById('r-bl-rnd-sec').style.display='';
+  document.getElementById('rcvOvl').classList.add('show');
+}
+function showRcv_tbl(r){
+  h('r-ps-sec');h('r-bl-rnd-sec');h('r-tbl-sec');
+  document.getElementById('r-dev').textContent=r.dev;
+  document.getElementById('r-ord-items').innerHTML=r.orders.map(o=>
+    `<div class="roi"><span class="rol">${o.name} ×${o.qty}</span><span class="rov">${o.sub.toLocaleString()} ل.س</span></div>`).join('');
+  document.getElementById('r-tot').textContent=r.total.toLocaleString('ar-SY');
+  document.getElementById('r-tbl-sec').style.display='';
+  document.getElementById('rcvOvl').classList.add('show');
+}
+function h(id){document.getElementById(id).style.display='none'}
+function closeRcv(){document.getElementById('rcvOvl').classList.remove('show')}
+
+// ══════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════
+function renderHistory(){
+  const el=document.getElementById('histList');
+  if(!history.length){el.innerHTML='<div class="emp-st"><div class="emp-ic">📋</div>لا توجد سجلات بعد</div>';return;}
+  el.innerHTML=history.map(r=>{
+    let info='';
+    if(r.type==='ps'||r.type==='bl-time') info=fmt12(r.start)+' ← '+fmt12(r.end)+' ('+r.dur+')';
+    else if(r.type==='bl-round') info=r.rounds+' جولة';
+    else info=r.orders.length+' صنف';
+    const typeLabel=r.type==='ps'?'PS':r.type==='bl-time'?'بلياردو-وقت':r.type==='bl-round'?'بلياردو-جولات':'طاولة';
+    return`<div class="hi">
+      <div><div class="hi-dev">${r.dev}</div><div class="hi-info">${info}</div></div>
+      <div><div class="hi-amt">${r.total.toLocaleString()}</div><div class="hi-type">ل.س · ${typeLabel}</div></div>
+    </div>`;
+  }).join('')+`<button class="clr-btn" onclick="clearHist()">🗑 مسح السجل</button>`;
+}
+function clearHist(){if(!confirm('مسح كل السجل؟'))return;history=[];save();renderHistory();}
+function save(){localStorage.setItem('vegaH',JSON.stringify(history));}
+
+// ══════════════════════════════════════════════════
+// MANUAL
+// ══════════════════════════════════════════════════
+function manCalc(){
+  const sv=document.getElementById('m-start').value,ev=document.getElementById('m-end').value;
+  const pr=parseFloat(document.getElementById('m-price').value);
+  if(!sv||!ev||!pr){alert('أكمل جميع الحقول');return}
+  const[sh,sm]=sv.split(':').map(Number),[eh,em]=ev.split(':').map(Number);
+  let sM=sh*60+sm,eM=eh*60+em; if(eM<=sM)eM+=1440;
+  const mins=eM-sM,tot=Math.ceil((mins/60)*pr);
+  document.getElementById('m-r-dur').textContent=fmtDur(mins);
+  document.getElementById('m-r-rate').textContent=pr.toLocaleString()+' ل.س';
+  document.getElementById('m-r-tot').textContent=tot.toLocaleString();
+  document.getElementById('m-res').classList.add('show');
+}
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+function nowStr(){const n=new Date();return`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`}
+function tsToStr(ts){const d=new Date(ts);return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function timeStrToTs(sv){
+  const[h,m]=sv.split(':').map(Number),now=new Date();
+  let t=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+  if(t>now) t=new Date(t.getTime()-86400000);
+  return t.getTime();
+}
+function msHHMM(ms){const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor((t%3600)/60);return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`}
+function msFull(ms){const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
+function fmt12(t){if(!t)return'—';const[h,m]=t.split(':').map(Number),p=h>=12?'م':'ص';return`${h%12||12}:${String(m).padStart(2,'0')} ${p}`}
+function fmtDur(mins){const h=Math.floor(mins/60),m=mins%60;if(!h)return m+' دقيقة';if(!m)return h+' ساعة';return h+' ساعة و '+m+' دقيقة'}
+function updateBadge(){
+  const n=Object.keys(psSessions).length+Object.keys(blSessions).length+Object.values(tblOrders).filter(x=>x.open).length;
+  document.getElementById('actCount').textContent=n+' نشط';
+}
+function sw(t){
+  ['devices','billiard','tables','history'].forEach(x=>document.getElementById('tab-'+x).style.display=x===t?'block':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['devices','billiard','tables','history'][i]===t));
+  if(t==='history')renderHistory();
+}
+function ssp(v){document.getElementById('s-price').value=v;document.querySelectorAll('#ps-qps .qp').forEach(b=>b.classList.toggle('on',parseInt(b.textContent.replace(',',''))===v))}
+function blsp(v){document.getElementById('bl-price').value=v;document.querySelectorAll('#bl-qps .qp').forEach(b=>b.classList.toggle('on',parseInt(b.textContent.replace(',',''))===v))}
+function blrsp(v){document.getElementById('bl-rnd-price').value=v;}
+function msp(v){document.getElementById('m-price').value=v;document.querySelectorAll('#tab-devices .qp').forEach(b=>b.classList.toggle('on',parseInt(b.textContent.replace(',',''))===v))}
+
+init();
+</script>
+</body>
+</html>
